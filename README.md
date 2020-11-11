@@ -10,3 +10,5 @@ An async/await library for C
 * not everything should be malloc'd.  Switch to initializers instead of allocators.  This way, the user can put things on the stack.
 * find some sane way of simulating closures for convenience.  Generators might work as a stand-in for encapsulating scope, but they might also be expensive.
 * allow user to specify stack size for generators.
+* add reference-counting structure for convenience sake
+* make things more "C" like (e.g. generator_t instead of Generator)
