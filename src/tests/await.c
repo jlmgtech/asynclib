@@ -11,8 +11,16 @@
 #include "../include/Promise.h"
 #include "../include/Generator.h"
 
-// TODO - use GC for initial iterations
-// you can figure out how to do manual mem later
+// TODO - tests, tests, and more tests
+// TODO - part out the functions and structures that don't need to be in here
+// TODO - async and await macros
+// TODO - assume one universal event loop, and therefore simplify promises and event listeners
+// TODO - simplify "above the hood" function signatures to make global assumptions about stuff
+// TODO - collect the garbage - maybe you should just use gc_malloc...
+// TODO - if not using a gc, use an RC or similar strategy for nullifying
+//        promises at least (since you won't be expected to keep a reference of
+//        it around)
+// TODO - make easier callbacks (perhaps using makecontext?)
 
 Events* events;
 Emitter* emitter;
@@ -59,25 +67,37 @@ void removeListener(char* topic, size_t id) {
 
 typedef struct resolution_t {
     Generator* gen;
-    void* value;
+    void* val;
+    Promise* prm;
 } resolution_t;
 
-resolution_t* rdata = NULL;
-
-void resolver(void* __) {
-    Promise* p = (Promise*)GeneratorNext(rdata->gen, rdata->value);
-    if (!rdata->gen->done) {
-        PromiseThen(p, resolver);
+void resolver(void* old_promise) {
+    resolution_t* r = ((Promise*)old_promise)->misc;
+    Promise* p = (Promise*)GeneratorNext(r->gen, r->val);
+    if (p == NULL) {
+        // generator did not return a promise, so we'll assume it's done?
+        PromiseResolve(r->prm, NULL);
+    } else if (r->gen->done == true) {
+        // resolve the original promise with the return value from the
+        // generator (if any)
+        PromiseResolve(r->prm, r->gen->value);
+    } else {
+        p->misc = r;
+        PromiseThenSelf(p, resolver);
     }
 }
 
 Promise* async(void (*func)(Generator*)) {
     Promise* p = PromiseCreate(events);
     Generator* g = GeneratorMake(func);
-    rdata = malloc(sizeof(resolution_t));
+
+    resolution_t* rdata = malloc(sizeof(resolution_t));
     rdata->gen = g;
-    rdata->value = NULL;
-    resolver(NULL);
+    rdata->prm = p;
+    rdata->val = NULL;
+
+    p->misc = rdata;
+    resolver(p);
     return p;
 }
 
@@ -92,12 +112,12 @@ void resolve(void* v_p) {
 
 Promise* loadRecord() {
     Promise* p = PromiseCreate(events);
-    setTimeout(resolve, p, 1000);
+    setTimeout(resolve, p, 0);
     return p;
 }
 
 /* async */ void loadRecords(Generator* gen) {
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 2; i++) {
         /* await */ GeneratorYield(gen, loadRecord());
         printf("loaded %d records...\n", i+1);
     }
@@ -106,7 +126,8 @@ Promise* loadRecord() {
 }
 
 void main_finish(void* v_result) {
-    printf("received records: %d\n", *(int*)v_result);
+    printf("main_finish\n");
+    //printf("received records: %d\n", *(int*)v_result);
 }
 
 void jsmain(void* data) {

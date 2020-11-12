@@ -9,6 +9,8 @@ typedef struct PromiseNode {
     struct PromiseNode* next;
     struct PromiseNode* prev;
     PromiseCallback callback;
+    void* data;
+    bool pass_self;
 } PromiseNode;
 
 typedef struct Promise {
@@ -16,6 +18,7 @@ typedef struct Promise {
     void* value;
     PromiseNode* listeners;
     bool is_resolved;
+    void* misc;
 } Promise;
 
 
@@ -24,5 +27,6 @@ void PromiseInit(Promise* this, Events* events);
 void PromiseDestroy(Promise* this);
 void PromiseResolve(Promise* this, void* data);
 void PromiseThen(Promise* this, PromiseCallback callback);
+void PromiseThenSelf(Promise* this, PromiseCallback callback);
 
 #endif
