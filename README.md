@@ -1,4 +1,7 @@
 # asynclib
+https://nullprogram.com/blog/2019/03/28/
+^^ for windows support alternative to makecontext
+
 An async/await library for C
 
 ## TODO
