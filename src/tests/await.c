@@ -13,22 +13,20 @@
 #define then(p, callback) PromiseThen(p, callback)
 #define resolve(p, data) PromiseResolve(p, data)
 #define new_Promise() PromiseCreate(events)
-#define yield(x) GeneratorYield(gen, x)
-#define yield_return(x) GeneratorReturn(gen, x)
+#define await(x) GeneratorYield(gen, x)
+#define await_return(x) GeneratorReturn(gen, x)
 
 typedef struct scope_t {
     Generator* async_routine;
     Promise* master_promise;
 } scope_t;
 
-
 // TODO - part out the functions and structures that don't need to be in here
 // TODO - tests, tests, and more tests
-// TODO - async and await macros
+// TODO - call_async and await macros
 // TODO - assume one universal event loop, and therefore simplify promises and event listeners
-// TODO - simplify "above the hood" function signatures to make global assumptions about stuff
-// TODO - collect the garbage - maybe you should just use gc_malloc...
-// TODO - if not using a gc, use an RC or similar strategy for nullifying
+// TODO - collect the garbage - maybe you should just use GC_MALLOC...
+// TODO - if not using a gc, use an RC or similar strategy for collecting
 //        promises at least (since you won't be expected to keep a reference of
 //        it around)
 // TODO - make easier callbacks (perhaps using makecontext?)
@@ -37,7 +35,7 @@ void resolver(void* old_promise) {
 
     // preamble //
     void* awaited_result = ((Promise*)old_promise)->value;
-    scope_t* scope = ((Promise*)old_promise)->misc;
+    scope_t* scope = ((Promise*)old_promise)->__misc;
     // TODO - you can free the old promise now, I think...
     Generator* async_routine = scope->async_routine;
     Promise* master_promise = scope->master_promise;
@@ -48,20 +46,20 @@ void resolver(void* old_promise) {
         PromiseResolve(master_promise, iteration_value);
     } else {
         Promise* awaited_promise = (Promise*)iteration_value;
-        awaited_promise->misc = scope;
+        awaited_promise->__misc = scope;
         PromiseThenSelf(awaited_promise, resolver);
     }
 
 }
 
-Promise* async(void (*func)(Generator*)) {
+Promise* call_async(void (*func)(Generator*)) {
     Promise* p = PromiseCreate(events);
     Generator* async_routine = GeneratorMake(func);
 
     scope_t* scope = malloc(sizeof(scope_t));
     scope->async_routine = async_routine;
     scope->master_promise = p;
-    p->misc = scope;
+    p->__misc = scope;
 
     resolver(p);
     return p;
@@ -71,24 +69,34 @@ Promise* async(void (*func)(Generator*)) {
 // ================================= //
 
 
+
+
+
+
+
+
+
+
+
+
 static void resolveRecord(void* prm) {
     resolve((Promise*)prm, NULL);
 }
 
 Promise* loadRecord() {
-    Promise* p = new_Promise();
-    setTimeout(resolveRecord, p, 250);
-    return p;
+    Promise* record_prm = new_Promise();
+    setTimeout(resolveRecord, record_prm, 500);
+    return record_prm;
 }
 
 void loadRecords(Generator* gen) {
     static int i = 0;
-    for (i = 0; i < 2; i++) {
-        yield (loadRecord());
+    for (i = 0; i < 5; i++) {
+        await (loadRecord());
         printf("loaded %d records...\n", i+1);
     }
     printf("done\n");
-    yield_return (&i);
+    await_return (&i);
 }
 
 void main_finish(void* v_result) {
@@ -96,11 +104,19 @@ void main_finish(void* v_result) {
     stop_event_loop();
 }
 
-void jsmain(void* data) {
-    then(async(loadRecords), main_finish);
+void hello_world(void* i) {
+    printf("hello world %ld!\n", (long)i);
+}
+
+void entrypoint(void* data) {
+
+    setTimeout(hello_world, (void*)1L, 1700);
+    then(call_async(loadRecords), main_finish);
+    setTimeout(hello_world, (void*)2L, 1000);
+
 }
 
 int main() {
-    start_event_loop(jsmain);
+    start_event_loop(entrypoint);
     return 0;
 }

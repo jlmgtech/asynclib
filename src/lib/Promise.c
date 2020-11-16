@@ -43,7 +43,7 @@ void PromiseInit(Promise* this, Events* events) {
     this->value = NULL;
     this->is_resolved = false;
     this->listeners = NULL;
-    this->misc = NULL;
+    this->__misc = NULL;
 }
 
 void PromiseDestroy(Promise* this) {

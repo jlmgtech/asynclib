@@ -18,7 +18,7 @@ typedef struct Promise {
     void* value;
     PromiseNode* listeners;
     bool is_resolved;
-    void* misc;
+    void* __misc;
 } Promise;
 
 

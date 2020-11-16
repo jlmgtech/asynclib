@@ -8,6 +8,7 @@
 #include <stdarg.h>
 
 typedef struct Generator {
+    unsigned long __magic__;
     ucontext_t caller_ctx;
     ucontext_t callee_ctx;
     ucontext_t return_ctx;
@@ -20,6 +21,7 @@ typedef struct Generator {
     bool done;
 } Generator;
 
+bool is_generator(void* mystery_obj);
 void GeneratorReturn(Generator* this, void* value);
 Generator* GeneratorMake(void (*function)(Generator*));
 void GeneratorFree(Generator* this);

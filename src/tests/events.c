@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <signal.h>
 #include "../include/Events.h"
+#include "../include/partial.h"
 #include "../include/util.h"
 #include "../include/generics.h"
 #include "../include/Promise.h"
@@ -74,6 +75,26 @@ bool test2() {
     return success;
 }
 
+void add_nums(PRT_PARAMETERS) {
+    long a = PRT_PARAM(long);
+    long b = PRT_PARAM(long);
+    long* data = PRT_PARAM(long*);
+    *data = a + b;
+    PRT_RETURN (NULL);
+}
+
+bool test3() {
+    printf("should schedule a partially applied function");
+    long data = 0L;
+
+    partial_t* partial = make_partial(add_nums);
+    PRT_APPLY(partial, 5L);
+    PRT_APPLY(partial, 6L);
+    EventsPush(events, (void*)partial, (void*)&data);
+    EventsRun(events);
+    return data == 11L;
+}
+
 int main() {
     printf("\n\nsup\n");
     events = EventsCreate();
@@ -81,6 +102,7 @@ int main() {
     test(test0);
     test(test1);
     test(test2);
+    test(test3);
 
     EventsDestroy(events);
     printf("\n\ndone\n");

@@ -15,10 +15,15 @@ void GeneratorReturnError() {
     exit(1);
 }
 
+bool is_generator(void* mystery_obj) {
+    return *(unsigned long*)mystery_obj == 0x5E436A104;
+}
+
 Generator* GeneratorMake(void (*function)(Generator*)) {
 
     Generator* this = malloc(sizeof(Generator));
 
+    this->__magic__ = 0x5E436A104;
     this->function = function;
     this->iterations = 0;
     this->message = NULL;
@@ -31,7 +36,7 @@ Generator* GeneratorMake(void (*function)(Generator*)) {
     this->return_ctx.uc_stack.ss_size = sizeof(this->closeStack);
     this->return_ctx.uc_link = &this->caller_ctx;
     //makecontext(&this->return_ctx, (void (*)(void))GeneratorReturnError, 0);
-    makecontext(&this->return_ctx, (void (*)(void))GeneratorReturn, 2, this, NULL);
+    makecontext(&this->return_ctx, (void (*)(void))GeneratorReturn, 2, this, this->value);
 
     // activation context
     getcontext(&this->callee_ctx);

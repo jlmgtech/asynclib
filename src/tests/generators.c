@@ -2,7 +2,14 @@
 #include <stdbool.h>
 #include <time.h>
 #include "../include/Generator.h"
+#include "../include/partial.h"
 // http://albertnetymk.github.io/2014/12/05/context/
+
+#define test(x) if (!x) { \
+    return bombout("FAILED " #x); \
+} else { \
+    printf("PASSED " #x "\n\n"); \
+}
 
 void count(Generator* gen) {
     printf("count start\n");
@@ -203,6 +210,27 @@ bool test6() {
     return i == 122;
 }
 
+
+// TODO - make a macro or something so generator details can be elided
+// https://stackoverflow.com/questions/62903631/use-c-c-macros-to-generate-function-signature
+// ^^ macro examples
+void add_numbers(PRT_PARAMETERS) {
+    long a = PRT_PARAM(long);
+    long b = PRT_PARAM(long);
+    PRT_RETURN (a + b);
+}
+
+bool test7() {
+    printf("partial application example\n");
+
+    partial_t* add_numbers_p = make_partial(add_numbers);
+    PRT_APPLY(add_numbers_p, 1L);
+    long sum = (long)PRT_APPLY(add_numbers_p, 2L);
+    free_partial(add_numbers_p); // optional
+
+    return sum == 3;
+}
+
 int bombout(char* msg) {
     fprintf(stderr, "%s\n", msg);
     return 1;
@@ -210,47 +238,14 @@ int bombout(char* msg) {
 
 int main() {
 
-    if (!test0()) {
-        return bombout("FAILED TEST 0");
-    } else {
-        printf("PASS\n\n");
-    }
-
-    if (!test1()) {
-        return bombout("FAILED TEST 1");
-    } else {
-        printf("PASS\n\n");
-    }
-
-    if (!test2()) {
-        return bombout("FAILED TEST 1");
-    } else {
-        printf("PASS\n\n");
-    }
-
-    if (!test3()) {
-        return bombout("FAILED TEST 3");
-    } else {
-        printf("PASS\n\n");
-    }
-
-    if (!test4()) {
-        return bombout("FAILED TEST 4");
-    } else {
-        printf("PASS\n\n");
-    }
-
-    if (!test5()) {
-        return bombout("FAILED TEST 5");
-    } else {
-        printf("PASS\n\n");
-    }
-
-    if (!test6()) {
-        return bombout("FAILED TEST 6");
-    } else {
-        printf("PASS\n\n");
-    }
+    test(test0());
+    test(test1());
+    test(test2());
+    test(test3());
+    test(test4());
+    test(test5());
+    //test(test6());
+    test(test7());
 
     printf("SUCCESS - ALL TESTS PASSED\n");
     return 0;
