@@ -8,7 +8,7 @@
 #include <stdarg.h>
 
 typedef struct Generator {
-    unsigned long __magic__;
+    unsigned long long __magic__;
     ucontext_t caller_ctx;
     ucontext_t callee_ctx;
     ucontext_t return_ctx;

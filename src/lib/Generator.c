@@ -16,14 +16,14 @@ void GeneratorReturnError() {
 }
 
 bool is_generator(void* mystery_obj) {
-    return *(unsigned long*)mystery_obj == 0x5E436A104;
+    return *(unsigned long long*)mystery_obj == 0x5E436A104ULL;
 }
 
 Generator* GeneratorMake(void (*function)(Generator*)) {
 
     Generator* this = malloc(sizeof(Generator));
 
-    this->__magic__ = 0x5E436A104;
+    this->__magic__ = 0x5E436A104ULL;
     this->function = function;
     this->iterations = 0;
     this->message = NULL;

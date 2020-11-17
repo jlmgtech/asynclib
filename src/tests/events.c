@@ -76,22 +76,34 @@ bool test2() {
 }
 
 void add_nums(PRT_PARAMETERS) {
+    printf("e 1\n");
     long a = PRT_PARAM(long);
+    printf("e 2\n");
     long b = PRT_PARAM(long);
+    printf("e 3\n");
     long* data = PRT_PARAM(long*);
+    printf("e 4\n");
     *data = a + b;
+    printf("e 5\n");
     PRT_RETURN (NULL);
+    printf("e 6\n");
 }
 
 bool test3() {
     printf("should schedule a partially applied function");
     long data = 0L;
 
+    printf("a\n");
     partial_t* partial = make_partial(add_nums);
+    printf("b\n");
     PRT_APPLY(partial, 5L);
+    printf("c\n");
     PRT_APPLY(partial, 6L);
+    printf("d\n");
     EventsPush(events, (void*)partial, (void*)&data);
+    printf("e\n");
     EventsRun(events);
+    printf("f\n");
     return data == 11L;
 }
 
