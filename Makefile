@@ -1,7 +1,7 @@
 CC = gcc
 INCLUDES = -I./src/include
 CFLAGS = -g $(INCLUDES)
-MEMTEST = valgrind --leak-check=full --error-exitcode=1 --log-fd=9 9>>memlog
+MEMTEST = echo "\n$@\n" >>memlog && valgrind --leak-check=full --error-exitcode=1 --log-fd=9 9>>memlog
 
 .PHONY: memlog clean test dist/tests/*
 
