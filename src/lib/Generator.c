@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../include/Generator.h"
+#include <async/Generator.h>
 
 void GeneratorReturn(Generator* this, void* value) {
     this->done = true;
@@ -19,7 +19,7 @@ bool is_generator(void* mystery_obj) {
     return *(unsigned long long*)mystery_obj == 0x5E436A104ULL;
 }
 
-Generator* GeneratorMake(void (*function)(Generator*)) {
+Generator* GeneratorCreate(void (*function)(Generator*)) {
 
     Generator* this = malloc(sizeof(Generator));
 
@@ -48,7 +48,7 @@ Generator* GeneratorMake(void (*function)(Generator*)) {
     return this;
 }
 
-void GeneratorFree(Generator* this) {
+void GeneratorDestroy(Generator* this) {
     free(this);
 }
 

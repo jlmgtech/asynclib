@@ -4,7 +4,7 @@
 #include <stddef.h>
 
 typedef struct Array {
-    char** elements;
+    void** elements;
     size_t alloc_size;
     size_t count;
 } Array;
@@ -12,13 +12,14 @@ typedef struct Array {
 Array* ArrayCreate(size_t size);
 void ArrayDestroy(Array* this);
 
-void ArrayPush(Array* this, char* element);
-void ArrayUnshift(Array* this, char* element);
+void ArrayPush(Array* this, void* element);
+void ArrayUnshift(Array* this, void* element);
 
 void* ArrayGet(Array* this, size_t index);
 bool ArraySet(Array* this, size_t index, void* element);
 
 void* ArrayPop(Array* this);
 void* ArrayShift(Array* this);
+void* ArrayRemove(Array* this, size_t index);
 
 #endif

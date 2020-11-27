@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "../include/StringSet.h"
-#include "../include/HashMap.h"
+#include <async/StringSet.h>
+#include <async/HashMap.h>
 
 static size_t hashify(char* str) {
     size_t hash = 0;

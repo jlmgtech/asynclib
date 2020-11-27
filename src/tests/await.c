@@ -5,11 +5,13 @@
 #include <time.h>
 #include <sys/time.h>
 #include <callback.h>
-#include "../include/Events.h"
-#include "../include/Emitter.h"
-#include "../include/Promise.h"
-#include "../include/Generator.h"
-#include "../include/testutils.h"
+#include <async/Events.h>
+#include <async/Emitter.h>
+#include <async/Promise.h>
+#include <async/Generator.h>
+#include <async/testutils.h>
+#include <malloc.h>
+
 #define then(p, callback) PromiseThen(p, callback)
 #define resolve(p, data) PromiseResolve(p, data)
 #define new_Promise() PromiseCreate(events)
@@ -29,7 +31,6 @@ typedef struct scope_t {
 // TODO - if not using a gc, use an RC or similar strategy for collecting
 //        promises at least (since you won't be expected to keep a reference of
 //        it around)
-// TODO - make easier callbacks (perhaps using makecontext?)
 
 void resolver(void* old_promise) {
 
@@ -54,7 +55,7 @@ void resolver(void* old_promise) {
 
 Promise* call_async(void (*func)(Generator*)) {
     Promise* p = PromiseCreate(events);
-    Generator* async_routine = GeneratorMake(func);
+    Generator* async_routine = GeneratorCreate(func);
 
     scope_t* scope = malloc(sizeof(scope_t));
     scope->async_routine = async_routine;
@@ -117,6 +118,11 @@ void entrypoint(void* data) {
 }
 
 int main() {
-    start_event_loop(entrypoint);
+    struct mallinfo before = mallinfo();
+    //start_event_loop(entrypoint);
+    void* ptr = malloc(1024);
+    free(ptr);
+    struct mallinfo after = mallinfo();
+    printf("MEM STATISTICS: before: %d, after %d\n", before.uordblks, after.uordblks);
     return 0;
 }

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "../include/StringSet.h"
+#include <async/StringSet.h>
 
 StringSet* StringSetCreate() {
     StringSet* this = malloc(sizeof(StringSet));

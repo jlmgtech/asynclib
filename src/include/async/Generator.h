@@ -23,8 +23,8 @@ typedef struct Generator {
 
 bool is_generator(void* mystery_obj);
 void GeneratorReturn(Generator* this, void* value);
-Generator* GeneratorMake(void (*function)(Generator*));
-void GeneratorFree(Generator* this);
+Generator* GeneratorCreate(void (*function)(Generator*));
+void GeneratorDestroy(Generator* this);
 void GeneratorYieldFrom(Generator* this, void (*function)(Generator*));
 void* GeneratorYield(Generator* this, void* value);
 void* GeneratorNext(Generator* this, void* message);

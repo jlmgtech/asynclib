@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "../include/Promise.h"
+#include <async/Promise.h>
 
 static void add_listener(Promise* this, PromiseCallback callback, bool pass_self) {
     PromiseNode* listener = calloc(1, sizeof(PromiseNode));

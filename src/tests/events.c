@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <signal.h>
-#include "../include/Events.h"
-#include "../include/partial.h"
-#include "../include/util.h"
-#include "../include/generics.h"
-#include "../include/Promise.h"
+#include <async/Events.h>
+#include <async/Partial.h>
+#include <async/util.h>
+#include <async/generics.h>
+#include <async/Promise.h>
 
 #define test(x) if (x()) {\
     printf(": PASS!\n");\
@@ -76,34 +76,23 @@ bool test2() {
 }
 
 void add_nums(PRT_PARAMETERS) {
-    printf("e 1\n");
     long a = PRT_PARAM(long);
-    printf("e 2\n");
     long b = PRT_PARAM(long);
-    printf("e 3\n");
     long* data = PRT_PARAM(long*);
-    printf("e 4\n");
     *data = a + b;
-    printf("e 5\n");
     PRT_RETURN (NULL);
-    printf("e 6\n");
 }
 
 bool test3() {
     printf("should schedule a partially applied function");
     long data = 0L;
 
-    printf("a\n");
-    partial_t* partial = make_partial(add_nums);
-    printf("b\n");
+    partial_t* partial = PartialCreate(add_nums);
     PRT_APPLY(partial, 5L);
-    printf("c\n");
     PRT_APPLY(partial, 6L);
-    printf("d\n");
     EventsPush(events, (void*)partial, (void*)&data);
-    printf("e\n");
     EventsRun(events);
-    printf("f\n");
+    PartialDestroy(partial);
     return data == 11L;
 }
 

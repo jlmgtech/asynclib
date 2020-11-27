@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-#include "../include/HashMap.h"
-#include "../include/Array.h"
-#include "../include/StringSet.h"
+#include <async/HashMap.h>
+#include <async/Array.h>
+#include <async/StringSet.h>
 
 #define test(x) \
     printf("** ");\

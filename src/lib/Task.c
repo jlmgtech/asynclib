@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "../include/Task.h"
-#include "../include/Generator.h"
+#include <async/Task.h>
+#include <async/Generator.h>
 
 Task* TaskCreate(void* function, void* data) {
     Task* this = malloc(sizeof(Task));
@@ -11,18 +11,15 @@ Task* TaskCreate(void* function, void* data) {
 }
 
 void TaskDestroy(Task* this) {
-    if (is_generator(this->function)) {
-        GeneratorFree(this->function);
-    }
+    // don't free the generator, it confuses the programmer (aka myself)
+    //if (is_generator(this->function)) { GeneratorDestroy(this->function) }
     free(this);
 }
 
 void TaskCall(Task* this) {
     if (is_generator(this->function)) {
-        printf("is generator\n");
         GeneratorNext((Generator*)this->function, this->data);
     } else {
-        printf("is std function\n");
         ((void (*)(void*))this->function)(this->data);
     }
 }

@@ -1,4 +1,4 @@
-#include "../include/Promise.h"
+#include <async/Promise.h>
 
 Events* events;
 Emitter* emitter;

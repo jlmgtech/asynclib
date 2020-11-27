@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <time.h>
-#include "../include/Generator.h"
-#include "../include/partial.h"
+#include <async/Generator.h>
+#include <async/Partial.h>
 // http://albertnetymk.github.io/2014/12/05/context/
 
 #define test(x) if (!x) { \
@@ -90,10 +90,10 @@ void YieldFrom(Generator* gen) {
 
 bool test0() {
     printf("testing single value receive\n");
-    Generator* gen = GeneratorMake(Gen1337);
+    Generator* gen = GeneratorCreate(Gen1337);
     int* itval = (int*)GeneratorNext(gen, NULL);
     int val = *itval;
-    GeneratorFree(gen);
+    GeneratorDestroy(gen);
     return val == 1337;
 }
 
@@ -104,7 +104,7 @@ bool test1() {
     printf("testing single value echo\n");
 
     bool success = true;
-    Generator* echo = GeneratorMake(EchoOnce);
+    Generator* echo = GeneratorCreate(EchoOnce);
 
     tmp = (int*)GeneratorNext(echo, (void*)&val_1);
     success = *tmp == 1;
@@ -112,14 +112,14 @@ bool test1() {
     tmp = (int*)GeneratorNext(echo, (void*)&val_2);
     success = success && *tmp == 5678;
 
-    GeneratorFree(echo);
+    GeneratorDestroy(echo);
     return success;
 }
 
 bool test2() {
     printf("basic value iteration\n");
 
-    Generator* numbers = GeneratorMake(RecvRange);
+    Generator* numbers = GeneratorCreate(RecvRange);
     int value;
     for (;;) {
         const int* itvalue = (int*)GeneratorNext(numbers, NULL);
@@ -130,12 +130,13 @@ bool test2() {
             value = *itvalue;
         }
     }
+    GeneratorDestroy(numbers);
     return value == 5;
 }
 
 bool test3() {
     printf("basic send/receive iteration\n");
-    Generator* gen = GeneratorMake(SendRecvRange);
+    Generator* gen = GeneratorCreate(SendRecvRange);
     int val = 0;
     for (int i = 100; ;i-=2) {
         int* itval = GeneratorNext(gen, &i);
@@ -144,13 +145,14 @@ bool test3() {
         }
         val = *itval;
     }
+    GeneratorDestroy(gen);
     return val == 96;
 }
 
 bool test4() {
     printf("basic yield from\n");
     int val;
-    Generator* gen = GeneratorMake((void (*)(Generator*))YieldFrom);
+    Generator* gen = GeneratorCreate((void (*)(Generator*))YieldFrom);
     GeneratorNext(gen, NULL);
     GeneratorNext(gen, RecvRange); // send RecvRange as "argument"
     for (;;) {
@@ -160,13 +162,13 @@ bool test4() {
         }
         val = *value;
     }
-    GeneratorFree(gen);
+    GeneratorDestroy(gen);
     return val == 5;
 }
 
 bool test5() {
     printf("send/receive yield from\n");
-    Generator* gen = GeneratorMake((void (*)(Generator*))YieldFrom);
+    Generator* gen = GeneratorCreate((void (*)(Generator*))YieldFrom);
     GeneratorNext(gen, NULL);
     GeneratorNext(gen, SendRecvRange);
 
@@ -178,6 +180,7 @@ bool test5() {
         }
         value = *itval;
     }
+    GeneratorDestroy(gen);
     return value == 9;
 }
 
@@ -186,8 +189,8 @@ bool test6() {
 
     int num_tasks = 2;
     Generator* tasks[2];
-    tasks[0] = GeneratorMake(load_images);
-    tasks[1] = GeneratorMake(load_records);
+    tasks[0] = GeneratorCreate(load_images);
+    tasks[1] = GeneratorCreate(load_records);
     int tasks_done = 0;
     int i;
     for (i = 0; ; i++) {
@@ -195,7 +198,7 @@ bool test6() {
         Generator* task = tasks[id];
         if (task != NULL) {
             if (task->done) {
-                GeneratorFree(task);
+                GeneratorDestroy(task);
                 tasks[id] = NULL;
                 tasks_done++;
                 if (tasks_done == num_tasks) {
@@ -223,10 +226,10 @@ void add_numbers(PRT_PARAMETERS) {
 bool test7() {
     printf("partial application example\n");
 
-    partial_t* add_numbers_p = make_partial(add_numbers);
+    partial_t* add_numbers_p = PartialCreate(add_numbers);
     PRT_APPLY(add_numbers_p, 1L);
     long sum = (long)PRT_APPLY(add_numbers_p, 2L);
-    free_partial(add_numbers_p); // optional
+    PartialDestroy(add_numbers_p); // optional
 
     return sum == 3;
 }
