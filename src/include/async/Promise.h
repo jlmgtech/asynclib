@@ -1,7 +1,7 @@
 #ifndef promise_h
 #define promise_h
 #include <stdbool.h>
-#include "./Events.h"
+#include <async/Events.h>
 
 typedef void (*PromiseCallback)(void*);
 
@@ -28,5 +28,6 @@ void PromiseDestroy(Promise* this);
 void PromiseResolve(Promise* this, void* data);
 void PromiseThen(Promise* this, PromiseCallback callback);
 void PromiseThenSelf(Promise* this, PromiseCallback callback);
+void PromiseFinalize(void* ptr);
 
 #endif

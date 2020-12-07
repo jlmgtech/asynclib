@@ -3,21 +3,15 @@
 #include <time.h>
 #include <async/Generator.h>
 #include <async/Partial.h>
+#include <async/rc.h>
+#include <async/test.h>
 // http://albertnetymk.github.io/2014/12/05/context/
 
-#define test(x) if (!x) { \
-    return bombout("FAILED " #x); \
-} else { \
-    printf("PASSED " #x "\n\n"); \
-}
-
 void count(Generator* gen) {
-    printf("count start\n");
     for (int i = 0; i < 3; i++) {
         char msg = *((char*)GeneratorYield(gen, (void*)&i));
         //printf("received %c\n", msg);
     }
-    printf("count done\n");
     GeneratorReturn(gen, NULL);
 }
 
@@ -29,7 +23,7 @@ void load_images(Generator* gen) {
     req.tv_sec = 0;
     req.tv_nsec = 10000000;
     for (int i = 0; i < 20; i++) {
-        printf("%d images loaded     \r", i);
+        //printf("%d images loaded     \r", i);
         fflush(stdout);
         GeneratorYield(gen, NULL);
         nanosleep(&req, NULL);
@@ -44,7 +38,7 @@ void load_records(Generator* gen) {
     req.tv_sec = 0;
     req.tv_nsec = 50000000;
     for (int i = 0; i < 15; i++) {
-        printf("\r%d records loaded    ", i);
+        //printf("\r%d records loaded    ", i);
         fflush(stdout);
         GeneratorYield(gen, NULL);
         nanosleep(&req, NULL);
@@ -89,11 +83,11 @@ void YieldFrom(Generator* gen) {
 /// TEST FUNCTIONS ///
 
 bool test0() {
-    printf("testing single value receive\n");
+    printf("should receive a single value");
     Generator* gen = GeneratorCreate(Gen1337);
     int* itval = (int*)GeneratorNext(gen, NULL);
     int val = *itval;
-    GeneratorDestroy(gen);
+    DONE(gen);
     return val == 1337;
 }
 
@@ -101,7 +95,7 @@ bool test1() {
     int val_1 = 1234;
     int val_2 = 5678;
     int *tmp = NULL;
-    printf("testing single value echo\n");
+    printf("should echo a single value");
 
     bool success = true;
     Generator* echo = GeneratorCreate(EchoOnce);
@@ -112,12 +106,12 @@ bool test1() {
     tmp = (int*)GeneratorNext(echo, (void*)&val_2);
     success = success && *tmp == 5678;
 
-    GeneratorDestroy(echo);
+    DONE(echo);
     return success;
 }
 
 bool test2() {
-    printf("basic value iteration\n");
+    printf("should iterate basic values");
 
     Generator* numbers = GeneratorCreate(RecvRange);
     int value;
@@ -130,12 +124,12 @@ bool test2() {
             value = *itvalue;
         }
     }
-    GeneratorDestroy(numbers);
+    DONE(numbers);
     return value == 5;
 }
 
 bool test3() {
-    printf("basic send/receive iteration\n");
+    printf("should send/receive during iteration");
     Generator* gen = GeneratorCreate(SendRecvRange);
     int val = 0;
     for (int i = 100; ;i-=2) {
@@ -145,12 +139,12 @@ bool test3() {
         }
         val = *itval;
     }
-    GeneratorDestroy(gen);
+    DONE(gen);
     return val == 96;
 }
 
 bool test4() {
-    printf("basic yield from\n");
+    printf("should yield from");
     int val;
     Generator* gen = GeneratorCreate((void (*)(Generator*))YieldFrom);
     GeneratorNext(gen, NULL);
@@ -162,12 +156,12 @@ bool test4() {
         }
         val = *value;
     }
-    GeneratorDestroy(gen);
+    DONE(gen);
     return val == 5;
 }
 
 bool test5() {
-    printf("send/receive yield from\n");
+    printf("should send/receive yield from");
     Generator* gen = GeneratorCreate((void (*)(Generator*))YieldFrom);
     GeneratorNext(gen, NULL);
     GeneratorNext(gen, SendRecvRange);
@@ -180,12 +174,12 @@ bool test5() {
         }
         value = *itval;
     }
-    GeneratorDestroy(gen);
+    DONE(gen);
     return value == 9;
 }
 
 bool test6() {
-    printf("scheduler example\n");
+    printf("should demonstrate a scheduler based on generators");
 
     int num_tasks = 2;
     Generator* tasks[2];
@@ -198,7 +192,7 @@ bool test6() {
         Generator* task = tasks[id];
         if (task != NULL) {
             if (task->done) {
-                GeneratorDestroy(task);
+                DONE(task);
                 tasks[id] = NULL;
                 tasks_done++;
                 if (tasks_done == num_tasks) {
@@ -209,7 +203,6 @@ bool test6() {
             }
         }
     }
-    printf("\n");
     return i == 122;
 }
 
@@ -224,32 +217,25 @@ void add_numbers(PRT_PARAMETERS) {
 }
 
 bool test7() {
-    printf("partial application example\n");
+    printf("should partially apply a function using generators");
 
     partial_t* add_numbers_p = PartialCreate(add_numbers);
     PRT_APPLY(add_numbers_p, 1L);
     long sum = (long)PRT_APPLY(add_numbers_p, 2L);
-    PartialDestroy(add_numbers_p); // optional
+    DONE(add_numbers_p); // optional
 
     return sum == 3;
 }
 
-int bombout(char* msg) {
-    fprintf(stderr, "%s\n", msg);
-    return 1;
-}
-
 int main() {
-
-    test(test0());
-    test(test1());
-    test(test2());
-    test(test3());
-    test(test4());
-    test(test5());
-    //test(test6());
-    test(test7());
-
-    printf("SUCCESS - ALL TESTS PASSED\n");
+    test_preamble();
+    test(test0);
+    test(test1);
+    test(test2);
+    test(test3);
+    test(test4);
+    test(test5);
+    //test(test6);
+    test(test7);
     return 0;
 }

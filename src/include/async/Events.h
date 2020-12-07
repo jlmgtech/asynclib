@@ -1,6 +1,6 @@
 #ifndef events_h
 #define events_h
-#include "./Task.h"
+#include <async/Task.h>
 #include <pthread.h>
 
 typedef struct Events {
@@ -11,7 +11,7 @@ typedef struct Events {
 } Events;
 
 Events* EventsCreate();
-void EventsDestroy(Events*);
+void EventsFinalize(void*);
 void EventsRun(Events*);
 void EventsPush(Events*, void (*)(void*), void*);
 Task* EventsUnshift(Events*);

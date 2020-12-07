@@ -3,18 +3,18 @@
 #include <stdbool.h>
 #include <string.h>
 #include <async/StringSet.h>
+#include <async/rc.h>
 
 StringSet* StringSetCreate() {
-    StringSet* this = malloc(sizeof(StringSet));
+    StringSet* this = NEW(StringSet, StringSetFinalize, free);
     this->elements = calloc(1024, sizeof(char*));
     this->alloc_size = 1024;
     this->count = 0;
     return this;
 }
 
-void StringSetDestroy(StringSet* this) {
-    free(this->elements);
-    free(this);
+void StringSetFinalize(void* ptr) {
+    free(((StringSet*)ptr)->elements);
 }
 
 static void expandElements(StringSet* this) {

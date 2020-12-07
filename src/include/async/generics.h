@@ -1,8 +1,8 @@
 #ifndef generics_h
 #define generics_h
 
-#include "./Events.h"
-#include "./Task.h"
+#include <async/Events.h>
+#include <async/Task.h>
 // TODO - finish creating generic functions, like allocators and deallocators
 // and other useful macros, including integrating the GC
 

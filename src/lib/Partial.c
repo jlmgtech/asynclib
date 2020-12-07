@@ -10,7 +10,3 @@ partial_t* PartialCreate(void (func)(Generator*)) {
     PartialApply(this, NULL);
     return this;
 }
-
-void PartialDestroy(partial_t* this) {
-    GeneratorDestroy(this);
-}

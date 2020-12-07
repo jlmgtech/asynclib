@@ -11,7 +11,7 @@ typedef struct StringSet {
 } StringSet;
 
 StringSet* StringSetCreate();
-void StringSetDestroy(StringSet* this);
+void StringSetFinalize(void*);
 void StringSetAdd(StringSet* this, char* element);
 void StringSetRemove(StringSet* this, char* element);
 bool StringSetHas(StringSet* this, char* element);

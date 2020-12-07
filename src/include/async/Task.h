@@ -9,6 +9,5 @@ typedef struct Task {
 
 Task* TaskCreate(void*, void*);
 void TaskCall(Task*);
-void TaskDestroy(Task*);
 
 #endif

@@ -2,13 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <async/Emitter.h>
-
-#define test(x) if (x()) { \
-    printf("PASS\n"); \
-} else { \
-    printf("FAIL\n\n"); \
-    exit(1); \
-}
+#include <async/test.h>
+#include <async/rc.h>
 
 int acc = 0;
 int acc2 = 0;
@@ -27,7 +22,7 @@ void callback3(void* data) {
 }
 
 bool test0() {
-    printf("should add a listener for an event emitter that fires on every dispatch: \n");
+    printf("should add a listener for an event emitter that fires on every dispatch:");
 
     acc = 0;
     acc2 = 0;
@@ -38,13 +33,13 @@ bool test0() {
     Emitter* emitter = EmitterCreate();
     EmitterOn(emitter, "ready", callback);
     EmitterEmit(emitter, "ready", (void*)data);
-    EmitterDestroy(emitter);
+    DONE(emitter);
 
     return acc == 1337;
 }
 
 bool test1() {
-    printf("should add multiple listeners that persist: ");
+    printf("should add multiple listeners that persist");
 
     acc = 0;
     acc2 = 0;
@@ -56,13 +51,13 @@ bool test1() {
     int id_0 = EmitterOn(emitter, "ready", callback);
     int id_1 = EmitterOn(emitter, "ready", callback2);
     EmitterEmit(emitter, "ready", (void*)data);
-    EmitterDestroy(emitter);
+    DONE(emitter);
 
     return acc == 1337 && acc2 == 1337;
 }
 
 bool test2() {
-    printf("should remove a listener: ");
+    printf("should remove a listener");
     acc = 0;
     acc2 = 0;
 
@@ -76,13 +71,13 @@ bool test2() {
     EmitterRemoveListener(emitter, "ready", id_1);
     EmitterEmit(emitter, "ready", (void*)data);
 
-    EmitterDestroy(emitter);
+    DONE(emitter);
 
     return acc == 0 && acc2 == 1337;
 }
 
 bool test3() {
-    printf("should remove a listener: ");
+    printf("should remove a listener");
     acc = 0;
     acc2 = 0;
 
@@ -97,13 +92,13 @@ bool test3() {
     EmitterRemoveListener(emitter, "ready", id_1);
     EmitterEmit(emitter, "ready", (void*)data);
 
-    EmitterDestroy(emitter);
+    DONE(emitter);
 
     return acc == 0 && acc2 == 1337;
 }
 
 bool test4() {
-    printf("should add a listener that persists and one that fires only once: ");
+    printf("should add a listener that persists and one that fires only once");
     acc = 0;
     acc2 = 0;
 
@@ -122,13 +117,13 @@ bool test4() {
     acc2 = 0;
     EmitterEmit(emitter, "ready", (void*)data);
     success = success && acc == 1337 && acc2 == 0;
-    EmitterDestroy(emitter);
+    DONE(emitter);
 
     return success;
 }
 
 bool test5() {
-    printf("should schedule listeners for different channels: ");
+    printf("should schedule listeners for different channels");
     acc = 0;
     acc2 = 0;
 
@@ -147,18 +142,15 @@ bool test5() {
     EmitterEmit(emitter, "set 1337", (void*)leet);
     EmitterEmit(emitter, "set 0xFEEBEE", (void*)feebee);
 
-    EmitterDestroy(emitter);
+    DONE(emitter);
     return acc == 0 && acc2 == 1337 && acc3 == 0xFEEBEE;
 }
 
 int main() {
-    printf("\nrunning tests\n\n");
-
+    test_preamble();
     test(test0);
     test(test1);
     test(test2);
     test(test3);
-
-    printf("\n\nSUCCESS! all tests PASSED\n\n");
     return 0;
 }

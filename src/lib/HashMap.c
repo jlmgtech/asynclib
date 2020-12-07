@@ -4,6 +4,11 @@
 #include <string.h>
 #include <async/StringSet.h>
 #include <async/HashMap.h>
+#include <async/rc.h>
+
+
+// TODO - make regions for buckets instead of relying on malloc
+// to improve performance and mitigate fragmentation
 
 static size_t hashify(char* str) {
     size_t hash = 0;
@@ -73,22 +78,22 @@ void HashMapSet(HashMap* this, char* key, void* value) {
 }
 
 HashMap* HashMapCreate(size_t num_buckets) {
-    HashMap* this = malloc(sizeof(HashMap));
+    HashMap* this = NEW(HashMap, HashMapFinalize, free);
     this->buckets = calloc(num_buckets, sizeof(HashMapValue));
     this->num_buckets = num_buckets;
     this->keys = StringSetCreate();
     return this;
 }
 
-void HashMapDestroy(HashMap* this) {
-    StringSetDestroy(this->keys);
+void HashMapFinalize(void* ptr) {
+    HashMap* this = (HashMap*)ptr;
+    DONE(this->keys);
     for (int i = 0; i < this->num_buckets; i++) {
         if (this->buckets[i] != NULL) {
             HashMapValueDestroyList(this->buckets[i]);
         }
     }
     free(this->buckets);
-    free(this);
 }
 
 HashMapValue* HashMapValueCreate(char* key, void* value) {

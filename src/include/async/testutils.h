@@ -1,4 +1,5 @@
 #include <async/Promise.h>
+#include <async/rc.h>
 
 Events* events;
 Emitter* emitter;
@@ -49,8 +50,8 @@ void start_event_loop(void (*entrypoint)(void*)) {
     while (_event_loop_running) {
         EventsRun(events);
     }
-    EmitterDestroy(emitter);
-    EventsDestroy(events);
+    DONE(emitter);
+    DONE(events);
 }
 
 void stop_event_loop() {

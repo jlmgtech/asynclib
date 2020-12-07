@@ -3,21 +3,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <async/Array.h>
+#include <async/rc.h>
 
 Array* ArrayCreate(size_t alloc_size) {
     if (alloc_size == 0) {
         alloc_size = 1024;
     }
-    Array* this = malloc(sizeof(Array));
+    Array* this = NEW(Array, ArrayFinalize, free);
     this->elements = calloc(alloc_size, sizeof(void*));
     this->alloc_size = alloc_size;
     this->count = 0;
     return this;
 }
 
-void ArrayDestroy(Array* this) {
-    free(this->elements);
-    free(this);
+void ArrayFinalize(void* ptr) {
+    free(((Array*)ptr)->elements);
 }
 
 void* ArrayRemove(Array* this, size_t index) {

@@ -7,10 +7,11 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <async/Events.h>
+#include <async/rc.h>
 #include <async/Task.h>
 
 Events* EventsCreate() {
-    Events* this = malloc(sizeof(Events));
+    Events* this = NEW(Events, EventsFinalize, free);
     this->count = 0;
     this->first = NULL;
     this->last = NULL;
@@ -22,9 +23,9 @@ Events* EventsCreate() {
     }
 }
 
-void EventsDestroy(Events* this) {
+void EventsFinalize(void* ptr) {
+    Events* this = (Events*)ptr;
     pthread_mutex_destroy(&this->lock);
-    free(this);
 }
 
 static void EventsLock(Events* this) {
@@ -77,6 +78,6 @@ void EventsRun(Events* this) {
     while (this->count) {
         Task* task = EventsUnshift(this);
         TaskCall(task);
-        TaskDestroy(task);
+        free(task);
     }
 }

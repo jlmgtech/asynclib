@@ -10,12 +10,6 @@ Task* TaskCreate(void* function, void* data) {
     return this;
 }
 
-void TaskDestroy(Task* this) {
-    // don't free the generator, it confuses the programmer (aka myself)
-    //if (is_generator(this->function)) { GeneratorDestroy(this->function) }
-    free(this);
-}
-
 void TaskCall(Task* this) {
     if (is_generator(this->function)) {
         GeneratorNext((Generator*)this->function, this->data);

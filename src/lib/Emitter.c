@@ -3,9 +3,10 @@
 #include <async/HashMap.h>
 #include <async/Array.h>
 #include <async/Emitter.h>
+#include <async/rc.h>
 
 Emitter* EmitterCreate() {
-    Emitter* this = malloc(sizeof(Emitter));
+    Emitter* this = NEW(Emitter, EmitterFinalize, free);
     this->channels = HashMapCreate(1024);
     this->last_id = 0;
     return this;
@@ -23,10 +24,6 @@ Handler* HandlerCreate(size_t id, EventCallback callback, bool is_one_time) {
     this->callback = callback;
     this->is_one_time = is_one_time;
     return this;
-}
-
-void HandlerDestroy(Handler* this) {
-    free(this);
 }
 
 // TODO - DRY EmitterOnce and EmitterOn
@@ -61,7 +58,7 @@ void EmitterEmit(Emitter* this, char* topic, void* data) {
             Handler* handler = (Handler*)ArrayGet(channel, i);
             handler->callback(data);
             if (handler->is_one_time) {
-                HandlerDestroy(handler);
+                free(handler);
                 ArraySet(channel, i, NULL);
             }
         }
@@ -85,23 +82,24 @@ void EmitterRemoveListener(Emitter* this, char* topic, size_t id) {
     for (size_t i = 0; i < channel->count; i++) {
         Handler* handler = (Handler*)ArrayGet(channel, i);
         if (handler->id == id) {
-            HandlerDestroy(handler);
+            free(handler);
             ArrayRemove(channel, i);
             return;
         }
     }
 }
 
-void EmitterDestroy(Emitter* this) {
+void EmitterFinalize(void* ptr) {
+    Emitter* this = (Emitter*)ptr;
+
     for (size_t i = 0; i < this->channels->keys->count; i++) {
         char* key = this->channels->keys->elements[i];
         Array* channel = HashMapGet(this->channels, key);
         for (int j = 0; j < channel->count; j++) {
             Handler* handler = (Handler*)ArrayGet(channel, j);
-            HandlerDestroy(handler);
+            free(handler);
         }
-        ArrayDestroy(channel);
+        DONE(channel);
     }
-    HashMapDestroy(this->channels);
-    free(this);
+    DONE(this->channels);
 }

@@ -5,15 +5,8 @@
 #include <async/HashMap.h>
 #include <async/Array.h>
 #include <async/StringSet.h>
-
-#define test(x) \
-    printf("** ");\
-    if (x()) {\
-        printf(": PASS\n");\
-    } else {\
-        printf(": FAIL\n\n");\
-        exit(1);\
-    }\
+#include <async/test.h>
+#include <async/rc.h>
 
 bool test0() {
     printf("should return the value that was set on key 'a'");
@@ -27,7 +20,7 @@ bool test0() {
     } else {
         success = value == *newval;
     }
-    HashMapDestroy(map);
+    DONE(map);
     return success;
 }
 
@@ -39,7 +32,7 @@ bool test1() {
     HashMapSet(map, "a", (void*)&value);
     int *newval = (int*)HashMapGet(map, "bbb");
     success = newval == NULL;
-    HashMapDestroy(map);
+    DONE(map);
     return success;
 }
 
@@ -53,7 +46,7 @@ bool test1_2() {
     HashMapSet(map, "a", (void*)&value_b);
     int *newval = (int*)HashMapGet(map, "a");
     success = *newval == 11;
-    HashMapDestroy(map);
+    DONE(map);
     return success;
 }
 
@@ -68,7 +61,7 @@ bool test1_3() {
     HashMapSet(map, "a", (void*)&value_b);
     int *newval = (int*)HashMapGet(map, "a");
     success = *newval == 11;
-    HashMapDestroy(map);
+    DONE(map);
     return success;
 }
 
@@ -81,7 +74,7 @@ bool test1_4() {
     HashMapRemove(map, "a");
     bool success = map->keys->count == 0 &&
         map->keys->elements[0] == NULL;
-    HashMapDestroy(map);
+    DONE(map);
     return success;
 }
 
@@ -98,7 +91,7 @@ bool test2() {
     int* bval_2 = (int*)HashMapGet(map, "Bob brown Jr.");
 
     success = *aval_2 == aval && *bval_2 == bval;
-    HashMapDestroy(map);
+    DONE(map);
     return success;
 }
 
@@ -111,7 +104,7 @@ bool test2_2() {
     HashMapSet(map, "a", &aval);
     HashMapRemove(map, "a");
     bool success = HashMapGet(map, "a") == NULL;
-    HashMapDestroy(map);
+    DONE(map);
 
     return success;
 }
@@ -136,7 +129,7 @@ bool test2_3() {
         HashMapGet(map, "b") != NULL &&
         HashMapGet(map, "c") != NULL;
 
-    HashMapDestroy(map);
+    DONE(map);
 
     return success;
 }
@@ -161,7 +154,7 @@ bool test2_4() {
         HashMapGet(map, "b") == NULL &&
         HashMapGet(map, "c") != NULL;
 
-    HashMapDestroy(map);
+    DONE(map);
 
     return success;
 }
@@ -186,7 +179,7 @@ bool test2_5() {
         HashMapGet(map, "b") != NULL &&
         HashMapGet(map, "c") == NULL;
 
-    HashMapDestroy(map);
+    DONE(map);
 
     return success;
 }
@@ -199,7 +192,7 @@ bool test3() {
     bool success = StringSetHas(set, "hi") &&
         StringSetHas(set, "hi2") &&
         !StringSetHas(set, "there");
-    StringSetDestroy(set);
+    DONE(set);
     return success;
 }
 
@@ -211,7 +204,7 @@ bool test4() {
     StringSetRemove(set, "there");
     bool success = StringSetHas(set, "hi") &&
         !StringSetHas(set, "there");
-    StringSetDestroy(set);
+    DONE(set);
     return success;
 }
 
@@ -224,7 +217,7 @@ bool test5() {
     StringSetAdd(set, "3");
     StringSetAdd(set, "4");
     bool success = set->count == 5;
-    StringSetDestroy(set);
+    DONE(set);
     return success;
 }
 
@@ -261,7 +254,7 @@ bool test6() {
     for (int i = 0; i < 2048; i++) {
         free(set->elements[i]);
     }
-    StringSetDestroy(set);
+    DONE(set);
     return success;
 }
 
@@ -271,7 +264,7 @@ bool test7() {
     ArrayPush(arr, "hi");
     char* result = (char*)ArrayPop(arr);
     bool success = strcmp(result, "hi") == 0;
-    ArrayDestroy(arr);
+    DONE(arr);
     return success;
 }
 
@@ -281,7 +274,7 @@ bool test8() {
     ArrayUnshift(arr, "hi");
     char* result = (char*)ArrayShift(arr);
     bool success = strcmp(result, "hi") == 0;
-    ArrayDestroy(arr);
+    DONE(arr);
     return success;
 }
 
@@ -298,7 +291,7 @@ bool test9() {
     bool success = strcmp(pushed, "pushed") == 0 &&
         strcmp(unshifted, "unshifted") == 0;
 
-    ArrayDestroy(arr);
+    DONE(arr);
     return success;
 }
 
@@ -314,12 +307,14 @@ bool test10() {
     ArraySet(arr, 1, "z");
     success = success && strcmp("z", ArrayGet(arr, 1)) == 0;
 
-    ArrayDestroy(arr);
+    DONE(arr);
     return success;
 }
 
 int main() {
-    printf("\nrunning tests\n\n");
+    test_preamble();
+
+    // hash map tests
     test(test0);
     test(test1);
     test(test1_2);
@@ -331,19 +326,18 @@ int main() {
     test(test2_4);
     test(test2_5);
 
-    printf("\nTESTING StringSet\n\n");
+    // string set tests
     test(test3);
     test(test4);
     test(test5);
     test(test6);
 
-    printf("\nTESTING Array\n\n");
+    // array tests
     test(test7);
     test(test8);
     test(test9);
     test(test10);
 
-    printf("\n\nSUCCESS! all tests PASSED\n\n");
     return 0;
 }
 

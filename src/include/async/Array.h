@@ -4,13 +4,13 @@
 #include <stddef.h>
 
 typedef struct Array {
-    void** elements;
     size_t alloc_size;
     size_t count;
+    void** elements;
 } Array;
 
 Array* ArrayCreate(size_t size);
-void ArrayDestroy(Array* this);
+void ArrayFinalize(void*);
 
 void ArrayPush(Array* this, void* element);
 void ArrayUnshift(Array* this, void* element);

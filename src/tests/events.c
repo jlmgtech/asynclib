@@ -7,13 +7,8 @@
 #include <async/util.h>
 #include <async/generics.h>
 #include <async/Promise.h>
-
-#define test(x) if (x()) {\
-    printf(": PASS!\n");\
-} else {\
-    printf(": FAIL!\n");\
-    exit(1);\
-}
+#include <async/rc.h>
+#include <async/test.h>
 
 Events* events;
 
@@ -26,13 +21,13 @@ bool test0() {
     printf("should schedule promise callback when calling resolve AFTER setting it");
 
     int data = 1337;
-    Promise p;
-    PromiseInit(&p, events);
-    PromiseThen(&p, callback_0);
-    PromiseResolve(&p, &data);
+    Promise* p = PromiseCreate(events);
+    PromiseThen(p, callback_0);
+    PromiseResolve(p, &data);
     bool success = data == 1337;
     EventsRun(events);
     success = success && data == 1338;
+    DONE(p);
 
     return success;
 }
@@ -41,12 +36,12 @@ bool test1() {
     printf("should schedule promise callback when calling resolve BEFORE setting it");
 
     int data = 1337;
-    Promise p;
-    PromiseInit(&p, events);
-    PromiseResolve(&p, &data);
-    PromiseThen(&p, callback_0);
+    Promise* p = PromiseCreate(events);
+    PromiseResolve(p, &data);
+    PromiseThen(p, callback_0);
     bool success = data == 1337;
     EventsRun(events);
+    DONE(p);
     success = success && data == 1338;
 
     return success;
@@ -57,20 +52,19 @@ bool test2() {
 
     int data = 1337;
 
-    Promise p;
-    PromiseInit(&p, events);
-
-    PromiseResolve(&p, &data);
-    PromiseThen(&p, callback_0);
+    Promise* p = PromiseCreate(events);
+    PromiseResolve(p, &data);
+    PromiseThen(p, callback_0);
 
     bool success = data == 1337;
     EventsRun(events);
     success = success && data == 1338;
 
-    PromiseThen(&p, callback_0);
-    PromiseThen(&p, callback_0);
+    PromiseThen(p, callback_0);
+    PromiseThen(p, callback_0);
     EventsRun(events);
     success = success && data == 1340;
+    DONE(p);
 
     return success;
 }
@@ -92,20 +86,17 @@ bool test3() {
     PRT_APPLY(partial, 6L);
     EventsPush(events, (void*)partial, (void*)&data);
     EventsRun(events);
-    PartialDestroy(partial);
+    DONE(partial);
     return data == 11L;
 }
 
 int main() {
-    printf("\n\nsup\n");
+    test_preamble();
     events = EventsCreate();
-
     test(test0);
     test(test1);
     test(test2);
     test(test3);
-
-    EventsDestroy(events);
-    printf("\n\ndone\n");
+    DONE(events);
     return 0;
 }

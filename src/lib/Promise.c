@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <async/rc.h>
 #include <async/Promise.h>
 
 static void add_listener(Promise* this, PromiseCallback callback, bool pass_self) {
@@ -33,7 +34,7 @@ static void schedule_listeners(Promise* this) {
 
 
 Promise* PromiseCreate(Events* events) {
-    Promise* this = malloc(sizeof(Promise));
+    Promise* this = NEW(Promise, PromiseFinalize, free);
     PromiseInit(this, events);
     return this;
 }
@@ -46,13 +47,13 @@ void PromiseInit(Promise* this, Events* events) {
     this->__misc = NULL;
 }
 
-void PromiseDestroy(Promise* this) {
+void PromiseFinalize(void* ptr) {
+    Promise* this = (Promise*)ptr;
     while (this->listeners != NULL) {
         PromiseNode* listener = this->listeners->next;
         free(this->listeners);
         this->listeners = listener;
     }
-    free(this);
 }
 
 void PromiseResolve(Promise* this, void* data) {

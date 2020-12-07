@@ -1,6 +1,6 @@
 #ifndef map_h
 #define map_h
-#include "./StringSet.h"
+#include <async/StringSet.h>
 
 typedef struct HashMapValue {
     char* key;
@@ -20,7 +20,7 @@ typedef struct HashMap {
 } HashMap;
 
 HashMap* HashMapCreate(size_t num_buckets);
-void HashMapDestroy(HashMap* this);
+void HashMapFinalize(void*);
 void* HashMapGet(HashMap* this, char* key);
 void HashMapSet(HashMap* this, char* key, void* value);
 void HashMapRemove(HashMap* this, char* key);

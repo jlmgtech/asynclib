@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <async/Generator.h>
+#include <async/rc.h>
 
 void GeneratorReturn(Generator* this, void* value) {
     this->done = true;
@@ -21,7 +22,7 @@ bool is_generator(void* mystery_obj) {
 
 Generator* GeneratorCreate(void (*function)(Generator*)) {
 
-    Generator* this = malloc(sizeof(Generator));
+    Generator* this = NEW(Generator, NULL, free);
 
     this->__magic__ = 0x5E436A104ULL;
     this->function = function;
@@ -46,10 +47,6 @@ Generator* GeneratorCreate(void (*function)(Generator*)) {
     makecontext(&this->callee_ctx, (void (*)(void))this->function, 1, this);
 
     return this;
-}
-
-void GeneratorDestroy(Generator* this) {
-    free(this);
 }
 
 void GeneratorYieldFrom(Generator* this, void (*function)(Generator*)) {
