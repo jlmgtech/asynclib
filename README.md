@@ -30,6 +30,8 @@ Even though I've written many tests, used extended static linters, and analyzed 
 * reduce heap allocation everywhere you can.
 * allow user to specify stack size for generators.
 * write documentation and tutorials of building a concurrent app using the asynclib
+* windows compatibility
+* provide cmake build option
 
 ## INSTALLATION
 todo
